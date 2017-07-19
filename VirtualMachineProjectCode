@@ -1,0 +1,313 @@
+//Virtual Machine
+//CSE1102
+//Adrian Anthony
+//Saad Quader SECTION 002
+public class Main {
+
+	/**
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		Machine vm = new Machine();
+		Identifier x = new Identifier("x");
+		Repeat r = new Repeat(x, 5, new Print(x));
+		Identifier y = new Identifier("y");
+		Identifier t = new Identifier ("This is an identifier called t");
+		vm.pushExpr(new Sequence(new If(true, new Print(y), new Define(t, 200)), 300, r));
+		vm.pushExpr(new Print(y));
+		vm.pushExpr(new Define(y, 100));
+		vm.pushExpr(r);
+		vm.pushExpr(new Sequence(100,200,300));
+		vm.pushExpr(new If(true, 100, 200));
+		System.out.println(vm);
+		vm.run();
+		System.out.println(vm);
+		//Next, the report
+	}
+
+}
+
+
+public class Define implements Expression{
+	Identifier id;
+	Object exp;
+	public Define(Identifier i, Object ex){
+		id=i;
+		exp=ex;
+	}
+	public String toString(){
+		return "define "+id+" = "+exp;
+	}
+	public void eval(Machine m){
+		m.pushExpr(new Bind(id));
+		m.pushExpr(exp);
+		
+	}
+}
+
+
+public class Identifier implements Expression{
+	String name;
+	public Identifier(String nm){
+		name = nm;
+	}
+	public boolean equals(Object o){
+		if(o instanceof Identifier && this == o){
+			return true;
+		}
+		else{
+			return false;
+		}
+	}
+	public void eval(Machine m){
+		if(m.lookup(this) == null){
+			throw new RuntimeException("unbound identifier: "+this);
+		}
+		else{
+		m.pushObj(m.lookup(this));
+		}
+	}
+	public String toString(){
+		return name;
+	}
+}
+
+
+public interface Expression {
+	public abstract void eval(Machine m);
+}
+
+
+public class Drop implements Expression{
+	public void eval(Machine m){
+		m.popObj();
+	}
+	public String toString(){
+		return "Drop()";
+	}
+}
+
+
+public class Display implements Expression{
+	public String toString(){
+		return "Display()";
+	}
+	public void eval(Machine m){
+		System.out.print(m.peepObj());
+	}
+}
+
+
+public class Bind implements Expression{
+	Identifier id;
+	public Bind(Identifier i){
+		id = i;
+	}
+	public String toString(){
+		return "Bind("+id+")";
+	}
+	public void eval(Machine m){
+		m.bind(id, m.peepObj());
+	}
+}
+
+
+public class If implements Expression{
+	Object cond;
+	Object cons;
+	Object alt;
+	public If(Object c1, Object c2, Object a){
+		cond = c1;
+		cons = c2;
+		alt = a;
+	}
+	public void eval(Machine m){
+		m.pushExpr(new Select(cons, alt));
+		m.pushExpr(cond);
+	}
+	public String toString(){
+		String s = "If "+cond+" then "+cons+" else "+alt;
+		return s;
+	}
+}
+
+
+public class Loop implements Expression{
+	int limit;
+	int count = 1;
+	boolean firstIter = true;
+	Identifier id;
+	Object exp;
+	public Loop(int lim, Identifier i, Object e){
+		limit = lim;
+		id = i;
+		exp = e;
+	}
+	public String toString(){
+		return "Loop("+count+","+limit+","+id+","+exp+")";
+	}
+	public void eval(Machine m){
+		if(count > limit){
+			return;
+		}
+		m.bind(id, count);
+		if(count == 1){
+			firstIter = false;
+		}
+		else{
+			m.popObj();
+		}
+		count++;
+		m.pushExpr(this);
+		m.pushExpr(exp);
+	}
+}
+
+import java.util.LinkedList;
+import java.util.HashMap;
+public class Machine {
+	private LinkedList<Object> objstack = new LinkedList<Object>();
+	private LinkedList<Object> exprstack = new LinkedList<Object>();
+	private HashMap<Identifier, Object> env = new HashMap<Identifier, Object>();
+	public void bind(Identifier id, Object val){
+		env.put(id,  val);
+	}
+	public Object lookup(Identifier id){
+		return env.get(id);
+	}
+	public void pushObj(Object o){
+		objstack.push(o);
+	}
+	public Object popObj(){
+		return objstack.pop();
+	}
+	public Object peepObj(){
+		return objstack.getFirst();
+	}
+	public void pushExpr(Object o){
+		exprstack.push(o);
+	}
+	public Object popExpr(){
+		return exprstack.pop();
+	}
+	public boolean step(){
+		Object ex = popExpr();
+		System.out.println("Evaluating "+ex+" | "+this);
+		if(ex instanceof Expression){
+			Expression exr = (Expression) ex;
+			exr.eval(this);
+		}
+		else{
+			pushObj(ex);
+		}
+		if(exprstack.peek() != null){//check if stack is empty
+			return true;}
+		else{
+			return false;
+		}
+	}
+	public void run(){
+		boolean check = true;
+		while (check == true){
+			check = step();
+		}
+	}
+	public String toString(){
+		String s = "Machine("+objstack+","+exprstack+")";
+		return s;
+	}
+}
+
+public class Print implements Expression{
+	Object obj;
+	public Print(Object o){
+		obj = o;
+	}
+	public String toString(){
+		return "print("+obj+")";
+	}
+	public void eval(Machine m){
+		m.pushExpr(new Display());
+		m.pushExpr(obj);
+	}
+}
+
+
+public class Sequence implements Expression{
+	public Object[] obs;
+	public Sequence(Object... exprs){
+		obs = exprs;
+	}
+	public void eval(Machine m){
+		if(obs.length == 1){
+			m.pushExpr(obs[0]);
+			m.pushExpr(new Drop());
+		}
+		else if(obs.length>1){
+			for(int i = obs.length-1; i>=0; i--){
+				if(i == 0){
+					m.pushExpr(obs[i]);
+				}
+				else{
+					m.pushExpr(obs[i]);//check
+					m.pushExpr(new Drop());
+				}
+			}
+		}
+		else{
+			m.pushExpr(false);
+			m.pushExpr(new Drop());
+		}
+	}
+	public String toString(){
+		String s = "";
+		for(int i = 0; i<obs.length; i++){
+			s+=obs[i]+" ";
+		}
+		return s;
+	}
+}
+
+
+public class Select implements Expression{
+	Object cons;
+	Object alt;
+	public Select(Object cons, Object alt){
+		this.cons = cons;
+		this.alt = alt;
+	}
+	public void eval(Machine m){
+		Object cond = m.popObj();
+		if(cond.equals(new Boolean(true))){
+			m.pushExpr(cons);
+		}
+		else if(cond.equals(new Boolean(false))){
+			m.pushExpr(alt);
+		}
+		else{
+			throw new RuntimeException("Select expected a Boolean expression.  Instead found "+cond);
+		}
+	}
+	public String toString(){
+		String s  = "Select("+cons+","+alt+")";
+		return s;
+	}
+}
+
+
+public class Repeat implements Expression{
+	Identifier id;
+	int count;
+	Expression ex;
+	public Repeat(Identifier i, int ct, Expression e){
+		id = i;
+		count = ct;
+		ex = e;
+	}
+	public void eval(Machine m){
+	m.pushExpr(new Loop(count, id, ex));	
+	}
+	public String toString(){
+		return "repeat "+id+" "+count+" "+ex;
+	}
+}
