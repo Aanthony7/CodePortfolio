@@ -1,0 +1,239 @@
+import tkinter
+from tkinter  import *
+from tkinter import messagebox
+#image
+#from PIL import ImageTk
+
+top = tkinter.Tk()
+#Trying this
+#top.columnconfigure(0, weight=1)
+
+top.resizable(0,0) #no resize
+top.attributes("-fullscreen", True)  #full screen
+top.overrideredirect(1) #Distable close, minimize, and maximize
+
+
+
+frame = Frame(top)
+
+startFrame = Frame(width = 800, height = 600)#For main page
+startFrame.pack_propagate(0)
+
+
+
+settingFrame = Frame(width = 800, height = 600) #for settings page
+settingFrame.pack_propagate(0)
+
+unlockFrame = Frame(width = 800, height = 600) #for unlock
+unlockFrame.grid_propagate(0)
+userDisplay = Canvas(unlockFrame)
+
+#Set up strings for display here
+
+regInpt = "Sample Text"
+#Button Commands
+def unlockTrigger():
+    startFrame.pack_forget()
+    unlockBackButton.config(command = lambda:unlockBackTrigger(usrInpt))
+    subButton.config(command = lambda:hitSubmit(usrInpt))
+    unlockFrame.pack()
+def settingTrigger():
+    startFrame.pack_forget()
+    #secFrame.pack()
+    unlockBackButton.config(command = lambda:secBackTrigger(usrInpt))
+    subButton.config(command = lambda:secSubmit(usrInpt))
+    unlockFrame.pack()
+#Unlock Commands
+def unlockBackTrigger(u):
+    u.delete(0, END)
+    u.insert(0, "Sample Text")
+    unlockFrame.pack_forget()
+    startFrame.pack()#Add clearing the entry field later.  Done.
+
+def hitNum(u, n):
+    if u.get() == "Sample Text":
+        u.delete(0, END)
+        u.insert(0, n)
+    else:
+        u.insert(END, n)
+def hitSubmit(u):
+    #Placeholder function for submitting passwords and ids
+    #We may need to split it in two, one for each.
+    u.delete(0, END)
+    u.insert(0, "Sample Text")
+def hitDelete(u):
+    #FIll in with backspace code later.
+    u.delete(0, END)
+    u.insert(0, "Sample Text")
+def secSubmit(u):
+    u.delete(0,END)
+    u.insert(0, "Sample Text")
+    unlockFrame.pack_forget()
+    settingFrame.pack()
+def adminSubmit(u):
+    #take the value from u to do database stuff - ADD CODE
+    u.delete(0, END)
+    u.insert(0, "Sample Text")
+    unlockFrame.pack_forget()
+    settingFrame.pack()
+def adminBackTrigger(u):
+    u.delete(0, END)
+    u.insert(0, "Sample Text")
+    unlockFrame.pack_forget()
+    settingFrame.pack()
+#Setting Commands
+def settingBackTrigger():
+    settingFrame.pack_forget()
+    startFrame.pack()
+#Lock Commands
+def logTrigger():
+    settingFrame.pack_forget()
+    logFrame.pack()
+def logBackTrigger():
+    logFrame.pack_forget()
+    settingFrame.pack()
+def regDevPop():
+    var = messagebox.showinfo("Register Device", "Place sticker and scan device.")
+def delDevPop():
+    var = messagebox.showinfo("Delete Device","Scan device.")
+def regPrintPop():
+    var = messagebox.showinfo("Register Finger Print","Place finger on scanner.")
+    #Add the code for operatingthe scanner here.
+def regAdminPop():
+    var = messagebox.showinfo("Register Administrator", "Placeholder text.")
+    #Registering administrators could be unneccessary as a button, instead only needing prints.
+    #On the other hand, this could be used to log the new admin password into the system.
+    #Beyond that, it might even be handled on the website instead...
+def regAdminTrigger():
+    #pull out unlockframe, and change button codes
+    unlockBackButton = Button(unlockFrame, text = "Back", command = lambda:adminBackTrigger(usrInpt)).grid(row=0, column =0, ipadx=90, ipady=40, sticky=N+S+E+W)
+    subButton = Button(unlockFrame, text = "Submit", command = lambda:secSubmit(usrInpt))
+    settingFrame.pack_forget()
+    unlockFrame.pack();
+def delPrintPop():
+    var = messagebox.showinfo("Placeholder","Remove Print")
+    #Replace this with the proper code to remove finger prints.
+#Reg Commands
+#def regTrigger():
+ #   settingFrame.pack_forget()
+  #regFrame.pack()
+ #This is unneccessary
+def secBackTrigger(u):
+    u.delete(0, END)
+    u.insert(0, "Sample Text")
+    #secFrame.pack_forget()
+    unlockFrame.pack_forget()
+    startFrame.pack()#Add entry reset.  Done.
+#Exit the application
+def exitApp():
+    top.destroy()
+
+
+#UnlockFrame
+usrInpt = Entry(unlockFrame, font = "Times 15")
+usrInpt.insert(0, "Sample Text")
+usrInpt.grid(row=0, column=1, ipadx=90, ipady=40,)
+
+oneButton = Button(unlockFrame, text = "1", font = "Times 15", command = lambda:hitNum(usrInpt, " 1"))
+oneButton.grid(row=1, column=0, ipadx=90, ipady=40, sticky=N+S+E+W)
+
+twoButton = Button(unlockFrame, text = "2", font = "Times 15", command = lambda:hitNum(usrInpt," 2"))
+twoButton.grid(row=1, column=1, ipadx=90, ipady=40, sticky=N+S+E+W)
+
+threeButton = Button(unlockFrame, text = "3", font = "Times 15", command = lambda:hitNum(usrInpt, " 3"))
+threeButton.grid(row=1, column=2, ipadx=90, ipady=40, sticky=N+S+E+W)
+
+fourButton = Button(unlockFrame, text = "4", font = "Times 15", command = lambda:hitNum(usrInpt, " 4"))
+fourButton.grid(row=2, column=0, ipadx=90, ipady=40, sticky=N+S+E+W)
+
+fiveButton = Button(unlockFrame, text = "5", font = "Times 15", command = lambda:hitNum(usrInpt, " 5"))
+fiveButton.grid(row=2, column=1, ipadx=90, ipady=40, sticky=N+S+E+W)
+
+sixButton = Button(unlockFrame, text = "6", font = "Times 15", command = lambda:hitNum(usrInpt, " 6"))
+sixButton.grid(row=2, column=2, ipadx=90, ipady=40, sticky=N+S+E+W)
+
+sevenButton = Button(unlockFrame, text = "7", font = "Times 15", command = lambda:hitNum(usrInpt, " 7"))
+sevenButton.grid(row=3, column=0, ipadx=90, ipady=40, sticky=N+S+E+W)
+
+eightButton = Button(unlockFrame, text = "8", font = "Times 15", command = lambda:hitNum(usrInpt, " 8"))
+eightButton.grid(row=3, column=1, ipadx=90, ipady=40, sticky=N+S+E+W)
+
+nineButton = Button(unlockFrame, text = "9", font = "Times 15", command = lambda:hitNum(usrInpt, " 9"))
+nineButton.grid(row=3, column=2, ipadx=90, ipady=40, sticky=N+S+E+W)
+
+unlockBackButton = Button(unlockFrame, text = "Back", command = lambda:unlockBackTrigger(usrInpt))
+unlockBackButton.grid(row=0, column =0, ipadx=90, ipady=40, sticky=N+S+E+W)
+
+zeroButton = Button(unlockFrame, text = "0", font = "Times 15", command = lambda:hitNum(usrInpt, " 0"))
+zeroButton.grid(row=4, column=1, ipadx=90, ipady=40, sticky=N+S+E+W)
+
+deleteButton = Button(unlockFrame, text="Delete:", command=lambda:hitDelete(usrInpt))
+deleteButton.grid(row=4, column=0, ipadx=90, ipady=40, sticky=N+S+E+W)
+
+subButton = Button(unlockFrame, text = "Submit", command = lambda:hitSubmit(usrInpt))
+subButton.grid(row=4, column=2, ipadx=90, ipady=40, sticky=N+S+E+W)
+
+
+#SettingFrame - It's defined above
+logButton = Button(settingFrame, text = "Log", command = logTrigger)
+regDevButton = Button(settingFrame, text = "Register Device", command = regDevPop)
+deleteDevButton = Button(settingFrame, text = "Delete Device", command = delDevPop)
+regAdminButton = Button(settingFrame, text = "Register Admin", command = regAdminPop)
+regPrintButton = Button(settingFrame, text = "Register Print", command = regPrintPop)
+delPrintButton = Button(settingFrame, text = "Delete Print", command = delPrintPop)
+exitButton = Button(settingFrame, text = "Exit Application", command = exitApp)
+logButton.pack(fill=BOTH, expand=1)
+regDevButton.pack(fill=BOTH, expand=1)
+deleteDevButton.pack(fill=BOTH, expand=1)
+regAdminButton.pack(fill=BOTH, expand=1)
+regPrintButton.pack(fill=BOTH, expand=1)
+delPrintButton.pack(fill=BOTH, expand=1)
+exitButton.pack(fill = BOTH, expand = 1)
+
+#LogFrame
+logFrame = Frame(width = 800, height = 600) #for displaying the log
+logFrame.pack_propagate(0)
+leftButton = Button(logFrame, text = "<|")
+info = StringVar()
+info.set("Test Display Data")
+outputMsg = Message(logFrame, textvariable = info)
+rightButton = Button(logFrame, text = "|>")
+logBackButton = Button(logFrame, text = "Back", command = logBackTrigger)
+logBackButton.pack(side = BOTTOM, fill = BOTH)
+leftButton.pack(side = LEFT, fill = BOTH)
+rightButton.pack(side = RIGHT, fill = BOTH)
+outputMsg.pack(side = TOP, fill = BOTH)
+
+
+#RegisterFrame
+secFrame = Frame(width = 800, height = 600)
+secFrame.grid_propagate(0)
+
+#Other numpad was superfluous and has been removed
+
+passFrame = Frame(width = 800, height = 600) #For password request - Maybe pop-up instead?
+
+printFrame = Frame(width = 800, height = 600) #For print - Maybe pop-up instead?
+
+deleteFrame = Frame(width = 800, height = 600) #for deleting users/admins - Maybe pop-up instead?
+
+
+
+#Startframe buttons
+unlockButton = Button(startFrame, text = "Unlock", command = unlockTrigger)
+unlockImage=PhotoImage(file="unlock.gif")
+unlockButton.config(image=unlockImage,width="100",height="100")
+settingButton = Button(startFrame, text = "Setting", command = settingTrigger)
+settingImage=PhotoImage(file="setting.gif")
+settingButton.config(image=settingImage,width="100",height="100")
+#Display startFrame
+startFrame.pack(fill= BOTH, expand = True)
+unlockButton.pack(side = LEFT, fill=BOTH, expand=1)
+settingButton.pack(side = RIGHT, fill=BOTH, expand=1)#This is what needs to be done.
+
+
+settingBackButton = Button(settingFrame, text = "Back", command = settingBackTrigger)
+settingBackButton.pack(fill=BOTH, expand=1)
+
+
+top.mainloop()
