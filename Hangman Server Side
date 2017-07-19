@@ -1,0 +1,210 @@
+"""
+Server side: open a socket on a port, listen for a message from a client,
+and send an echo reply; echoes lines until eof when client closes socket;
+spawns a thread to handle each client connection; threads share global
+memory space with main thread; this is more portable than fork: threads
+work on standard Windows systems, but process forks do not;
+"""
+
+import random, time, _thread as thread           # or use threading.Thread().start()
+from socket import *                     # get socket constructor and constants
+myHost = ''                              # server machine, '' means local host
+myPort = 50007                           # listen on a non-reserved port number
+
+sockobj = socket(AF_INET, SOCK_STREAM)           # make a TCP socket object
+sockobj.bind((myHost, myPort))                   # bind it to server port number
+sockobj.listen(5)                                # allow up to 5 pending connects
+
+
+def now():
+    return time.ctime(time.time())               # current time on the server
+
+def handleClient(connection):                    # in spawned thread: reply
+    time.sleep(5)                                # simulate a blocking activity
+    # constants for game are here to ensure proper scope
+    HANGMAN = (
+    """
+     ------
+     |    |
+     |
+     |
+     |
+     |
+     |
+     |
+     |
+    ----------
+    """,
+    """
+     ------
+     |    |
+     |    O
+     |
+     |
+     |
+     |
+     |
+     |
+    ----------
+    """,
+    """
+     ------
+     |    |
+     |    O
+     |   -+-
+     | 
+     |   
+     |   
+     |   
+     |   
+    ----------
+    """,
+    """
+     ------
+     |    |
+     |    O
+     |  /-+-
+     |   
+     |   
+     |   
+     |   
+     |   
+    ----------
+    """,
+    """
+     ------
+     |    |
+     |    O
+     |  /-+-/
+     |   
+     |   
+     |   
+     |   
+     |   
+    ----------
+    """,
+    """
+     ------
+     |    |
+     |    O
+     |  /-+-/
+     |    |
+     |   
+     |   
+     |   
+     |   
+    ----------
+    """,
+    """
+     ------
+     |    |
+     |    O
+     |  /-+-/
+     |    |
+     |    |
+     |   | 
+     |   | 
+     |   
+    ----------
+    """,
+    """
+     ------
+     |    |
+     |    O
+     |  /-+-/
+     |    |
+     |    |
+     |   | |
+     |   | |
+     |  
+    ----------
+    """)
+    MAX_WRONG = len(HANGMAN) - 1
+    text = open('wordlist.txt', 'r')
+    content = text.readlines()
+    WORDS = [x.strip('\n') for x in content]
+    #var initialization for game
+    word = random.choice(WORDS)
+    soFar = "-"*len(word)       #One dash for each letter remaining
+    wrong = 0      #Num of wrong guesses
+    used = []       #Used letters
+    while wrong != MAX_WRONG:
+        #data = connection.recv(1024)  This should be unnecessary, making both sides wait
+        
+        #print("Welcome to Hangman!")
+        reply = "Welcome to Hangman!"
+        connection.send(reply.encode())
+        while wrong < MAX_WRONG and soFar != word:
+            #print(HANGMAN[wrong])          #encode and send instead
+            reply = HANGMAN[wrong]
+            connection.send(reply.encode())
+            data = connection.recv(1024)
+            if data.decode() == "ack":
+                #print("\nYou've used the following letters\n")#encode and send
+                newUsed = ''.join(used)       #convert to string for display
+                reply = "\nYou've used the following letters\n"+newUsed+"\n"
+                connection.send(reply.encode())
+                data = connection.recv(1024)
+                if data.decode() == "ack":
+                    #print("\nSo far, the word is:\n", soFar)
+                    reply = "\nSo far, the word is:\n"+soFar+"\n"
+                    connection.send(reply.encode())
+                    data = connection.recv(1024)
+                    if data.decode() == "ack":
+                        #guess = input("Enter your guess: ")
+                        reply = "Enter your guess: "
+                        connection.send(reply.encode())
+                        #guess is taken and used
+                        guess = connection.recv(1024).decode() #Prep guess for use
+                        if len(guess) == 1:
+                            used.append(guess)
+                        else:
+                            reply = "\nPlease use a single letter.\n"
+                            connection.send(reply.encode())
+            new = ""
+            correct = 0
+            for i in range(len(word)):
+                if guess == word[i]:
+                    new+=guess
+                    correct = 1
+                else:
+                    new+=soFar[i]
+                    
+            if correct == 1:
+                reply = "\nYes! "+guess+" is in the word!\n"
+                connection.send(reply.encode())
+            else:
+                #print("\nSorry,", guess, "isn't in the word.")
+                reply = "\nSorry, "+guess+" isn't in the word.\n"
+                connection.send(reply.encode())
+                wrong = wrong+1
+            soFar = new
+    if wrong == MAX_WRONG:
+        #print(HANGMAN[wrong])
+        reply = HANGMAN[wrong]
+        connection.send(reply.encode())
+        #print("\nYou've been hanged!")
+        reply = "\nYou've been hanged!\n"
+        connection.send(reply.encode())
+    else:
+        #print("\nYou guessed it!")
+        reply = "\nYou guessed it!\n"
+        connection.send(reply.encode())
+    #print("\nThe word was ", word)
+    reply = "\nThe word was "+word+"\n"
+    connection.send(reply.encode())
+    #input("\n\nPress the enter key to exit")
+    reply = "\n\nPress <Enter> to exit"
+    connection.send(reply.encode())
+    data = connection.recv(1024)
+        #connection.send(reply.encode())
+    connection.close()
+
+def dispatcher():                                # listen until process killed
+    while True:                                  # wait for next connection,
+        connection, address = sockobj.accept()   # pass to thread for service
+        print('Server connected by', address, end=' ')
+        print('at', now())
+        thread.start_new_thread(handleClient, (connection,))
+
+dispatcher()
