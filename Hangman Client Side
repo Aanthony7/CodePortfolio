@@ -19,7 +19,7 @@ sockobj.connect((serverHost, serverPort))   # connect to server machine + port
 
 data = sockobj.recv(4096)
 print(data.decode())
-while data != "\n\nPress <Enter> to exit":     #Omit this loop idea
+while data != "\n\nPress <Enter> to exit":     #loop idea
     data = sockobj.recv(4096).decode()
     print(data)
     if data == "Enter your guess: ":
